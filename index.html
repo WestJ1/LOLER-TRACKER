@@ -1,0 +1,719 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>LOLER Inspection Tracker — Totalkare</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap');
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg: #0E0F0D;
+  --bg2: #161714;
+  --bg3: #1E1F1C;
+  --bg4: #272825;
+  --border: #2E2F2B;
+  --border2: #3A3B36;
+  --text: #E8E6DF;
+  --text2: #9A9890;
+  --text3: #5C5C55;
+  --accent: #C8380A;
+  --accent2: #E8501E;
+  --green: #3DAA6A;
+  --green2: #2D8A52;
+  --amber: #D4880A;
+  --amber2: #F0A020;
+  --red: #C83030;
+  --red2: #E84040;
+  --mono: 'IBM Plex Mono', monospace;
+  --sans: 'IBM Plex Sans', sans-serif;
+}
+
+html, body { height: 100%; background: var(--bg); color: var(--text); font-family: var(--sans); -webkit-font-smoothing: antialiased; }
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: var(--bg); }
+::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
+
+.app { min-height: 100vh; display: flex; flex-direction: column; }
+
+/* Header */
+header {
+  background: var(--bg2);
+  border-bottom: 1px solid var(--border);
+  padding: 0 28px;
+  display: flex; align-items: center; justify-content: space-between;
+  height: 56px; flex-shrink: 0;
+}
+.header-left { display: flex; align-items: center; gap: 16px; }
+.logo { display: flex; align-items: center; gap: 10px; }
+.logo-mark {
+  width: 30px; height: 30px; background: var(--accent);
+  border-radius: 5px; display: flex; align-items: center; justify-content: center;
+  font-family: var(--mono); font-size: 14px; font-weight: 600; color: #fff;
+}
+.logo-name { font-family: var(--mono); font-size: 13px; font-weight: 600; color: var(--text); letter-spacing: 0.02em; }
+.header-divider { width: 1px; height: 20px; background: var(--border); }
+.header-title { font-size: 12px; color: var(--text2); font-family: var(--mono); letter-spacing: 0.05em; text-transform: uppercase; }
+.header-right { display: flex; gap: 8px; align-items: center; }
+
+/* Buttons */
+.btn {
+  font-family: var(--mono); font-size: 11px; font-weight: 500;
+  padding: 6px 14px; border-radius: 4px; cursor: pointer;
+  border: 1px solid var(--border2); background: var(--bg3);
+  color: var(--text2); letter-spacing: 0.04em; text-transform: uppercase;
+  transition: all 0.12s; white-space: nowrap;
+}
+.btn:hover { background: var(--bg4); color: var(--text); border-color: var(--border2); }
+.btn.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+.btn.primary:hover { background: var(--accent2); border-color: var(--accent2); }
+.btn.ghost { background: transparent; border-color: var(--border); }
+.btn.ghost:hover { background: var(--bg3); }
+
+/* Layout */
+.body { flex: 1; display: grid; grid-template-columns: 300px 1fr; overflow: hidden; }
+
+/* Sidebar / form */
+.sidebar {
+  background: var(--bg2); border-right: 1px solid var(--border);
+  overflow-y: auto; display: flex; flex-direction: column;
+}
+.sidebar-header {
+  padding: 20px 20px 14px;
+  border-bottom: 1px solid var(--border);
+}
+.sidebar-header h2 { font-family: var(--mono); font-size: 11px; font-weight: 600; color: var(--text2); text-transform: uppercase; letter-spacing: 0.08em; }
+
+.form-body { padding: 18px 20px; display: flex; flex-direction: column; gap: 14px; flex: 1; }
+
+.field { display: flex; flex-direction: column; gap: 5px; }
+.field label { font-size: 11px; color: var(--text3); font-family: var(--mono); text-transform: uppercase; letter-spacing: 0.06em; }
+.field input, .field select {
+  background: var(--bg3); border: 1px solid var(--border);
+  border-radius: 4px; color: var(--text); font-family: var(--mono); font-size: 12px;
+  padding: 8px 10px; outline: none; transition: border-color 0.12s; width: 100%;
+}
+.field input:focus, .field select:focus { border-color: var(--accent); }
+.field select option { background: var(--bg3); }
+
+.field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+
+.add-btn {
+  margin-top: 4px; width: 100%; padding: 10px;
+  background: var(--accent); border: none; border-radius: 4px;
+  color: #fff; font-family: var(--mono); font-size: 11px; font-weight: 600;
+  letter-spacing: 0.06em; text-transform: uppercase; cursor: pointer;
+  transition: background 0.12s;
+}
+.add-btn:hover { background: var(--accent2); }
+
+.sidebar-note {
+  margin: 0 20px 20px;
+  padding: 12px 14px;
+  background: var(--bg3); border: 1px solid var(--border);
+  border-radius: 5px; border-left: 3px solid var(--accent);
+}
+.sidebar-note p { font-size: 11px; color: var(--text2); line-height: 1.6; font-family: var(--mono); }
+.sidebar-note strong { color: var(--amber2); }
+
+/* Main content */
+.main { overflow-y: auto; padding: 24px; display: flex; flex-direction: column; gap: 20px; }
+
+/* Summary cards */
+.summary-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+.summary-card {
+  background: var(--bg2); border: 1px solid var(--border);
+  border-radius: 8px; padding: 16px 18px;
+  position: relative; overflow: hidden;
+}
+.summary-card::before {
+  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+}
+.summary-card.ok::before { background: var(--green); }
+.summary-card.due::before { background: var(--amber); }
+.summary-card.overdue::before { background: var(--red); }
+.summary-card.total::before { background: var(--border2); }
+.summary-val { font-family: var(--mono); font-size: 32px; font-weight: 600; line-height: 1; }
+.summary-card.ok .summary-val { color: var(--green); }
+.summary-card.due .summary-val { color: var(--amber2); }
+.summary-card.overdue .summary-val { color: var(--red2); }
+.summary-card.total .summary-val { color: var(--text); }
+.summary-lbl { font-size: 11px; color: var(--text3); font-family: var(--mono); text-transform: uppercase; letter-spacing: 0.06em; margin-top: 6px; }
+
+/* Timeline section */
+.section-header {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 12px;
+}
+.section-title { font-family: var(--mono); font-size: 11px; font-weight: 600; color: var(--text2); text-transform: uppercase; letter-spacing: 0.08em; }
+
+/* Timeline */
+.timeline-wrap {
+  background: var(--bg2); border: 1px solid var(--border); border-radius: 8px;
+  overflow: hidden;
+}
+.timeline-months {
+  display: flex; border-bottom: 1px solid var(--border);
+  overflow-x: auto; background: var(--bg3);
+}
+.month-col {
+  min-width: 80px; flex: 1; padding: 8px 6px;
+  font-family: var(--mono); font-size: 10px; color: var(--text3);
+  text-align: center; text-transform: uppercase; letter-spacing: 0.05em;
+  border-right: 1px solid var(--border); position: relative;
+}
+.month-col.current { color: var(--accent2); }
+.month-col.current::after {
+  content: ''; position: absolute; bottom: -1px; left: 50%;
+  transform: translateX(-50%);
+  width: 0; height: 0;
+  border-left: 5px solid transparent;
+  border-right: 5px solid transparent;
+  border-top: 5px solid var(--accent2);
+}
+.month-col:last-child { border-right: none; }
+
+.timeline-rows { overflow-x: auto; }
+.timeline-row {
+  display: flex; border-bottom: 1px solid var(--border);
+  min-height: 52px; align-items: center;
+  transition: background 0.1s;
+}
+.timeline-row:last-child { border-bottom: none; }
+.timeline-row:hover { background: var(--bg3); }
+
+.row-label {
+  min-width: 200px; max-width: 200px; padding: 10px 16px;
+  border-right: 1px solid var(--border); flex-shrink: 0;
+}
+.row-name { font-size: 12px; color: var(--text); font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.row-type { font-size: 10px; color: var(--text3); font-family: var(--mono); margin-top: 2px; }
+
+.row-bars { display: flex; flex: 1; }
+.bar-cell {
+  min-width: 80px; flex: 1; padding: 10px 6px;
+  display: flex; align-items: center; justify-content: center;
+  border-right: 1px solid var(--border); position: relative;
+}
+.bar-cell:last-child { border-right: none; }
+
+.bar-pip {
+  width: 100%; height: 28px; border-radius: 3px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 9px; font-family: var(--mono); font-weight: 500;
+  letter-spacing: 0.04em;
+}
+.bar-pip.inspection { background: rgba(61,170,106,0.2); border: 1px solid var(--green2); color: var(--green); cursor: default; }
+.bar-pip.due-soon { background: rgba(212,136,10,0.2); border: 1px solid var(--amber); color: var(--amber2); }
+.bar-pip.overdue { background: rgba(200,48,48,0.2); border: 1px solid var(--red); color: var(--red2); animation: pulse 2s infinite; }
+@keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.6; } }
+
+/* Equipment table */
+.eq-table { width: 100%; border-collapse: collapse; }
+.eq-table th {
+  text-align: left; padding: 10px 14px;
+  font-family: var(--mono); font-size: 10px; color: var(--text3);
+  text-transform: uppercase; letter-spacing: 0.07em;
+  border-bottom: 1px solid var(--border); background: var(--bg3);
+}
+.eq-table td { padding: 11px 14px; border-bottom: 1px solid var(--border); font-size: 12px; vertical-align: middle; }
+.eq-table tr:last-child td { border-bottom: none; }
+.eq-table tr:hover td { background: var(--bg3); }
+.eq-table tbody tr { transition: background 0.1s; }
+
+.status-badge {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 3px 8px; border-radius: 3px;
+  font-family: var(--mono); font-size: 10px; font-weight: 500;
+  text-transform: uppercase; letter-spacing: 0.05em;
+}
+.status-badge.ok { background: rgba(61,170,106,0.15); color: var(--green); border: 1px solid rgba(61,170,106,0.3); }
+.status-badge.due { background: rgba(212,136,10,0.15); color: var(--amber2); border: 1px solid rgba(212,136,10,0.3); }
+.status-badge.overdue { background: rgba(200,48,48,0.15); color: var(--red2); border: 1px solid rgba(200,48,48,0.3); }
+.status-dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+
+.mono { font-family: var(--mono); font-size: 11px; color: var(--text2); }
+.del-btn {
+  background: none; border: 1px solid var(--border); border-radius: 3px;
+  color: var(--text3); cursor: pointer; padding: 3px 7px; font-size: 11px;
+  transition: all 0.12s; font-family: var(--mono);
+}
+.del-btn:hover { border-color: var(--red); color: var(--red2); background: rgba(200,48,48,0.1); }
+
+/* Empty state */
+.empty-state {
+  padding: 60px 20px; text-align: center;
+  display: flex; flex-direction: column; align-items: center; gap: 12px;
+}
+.empty-icon { font-size: 36px; opacity: 0.3; }
+.empty-title { font-family: var(--mono); font-size: 13px; color: var(--text2); }
+.empty-sub { font-size: 12px; color: var(--text3); max-width: 280px; line-height: 1.6; }
+
+/* Days remaining bar */
+.days-bar-wrap { display: flex; align-items: center; gap: 8px; }
+.days-bar-track { flex: 1; height: 4px; background: var(--bg4); border-radius: 2px; overflow: hidden; min-width: 60px; }
+.days-bar-fill { height: 100%; border-radius: 2px; transition: width 0.3s; }
+
+/* Frequency badge */
+.freq-badge {
+  font-family: var(--mono); font-size: 10px; color: var(--text3);
+  background: var(--bg4); border: 1px solid var(--border);
+  border-radius: 3px; padding: 2px 6px;
+}
+
+/* Tooltip */
+.has-tooltip { position: relative; }
+.has-tooltip:hover .tooltip { display: block; }
+.tooltip {
+  display: none; position: absolute; bottom: calc(100% + 6px); left: 50%;
+  transform: translateX(-50%);
+  background: var(--bg4); border: 1px solid var(--border2);
+  border-radius: 4px; padding: 5px 9px;
+  font-family: var(--mono); font-size: 10px; color: var(--text2);
+  white-space: nowrap; z-index: 10;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+}
+
+/* Section wrap */
+.section-wrap {
+  background: var(--bg2); border: 1px solid var(--border); border-radius: 8px; overflow: hidden;
+}
+
+/* Animate in */
+@keyframes fadeUp { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+.animate-in { animation: fadeUp 0.25s ease both; }
+</style>
+</head>
+<body>
+<div class="app">
+
+<header>
+  <div class="header-left">
+    <div class="logo">
+      <div class="logo-mark">T</div>
+      <div class="logo-name">TOTALKARE</div>
+    </div>
+    <div class="header-divider"></div>
+    <div class="header-title">LOLER Inspection Tracker</div>
+  </div>
+  <div class="header-right">
+    <button class="btn ghost" onclick="loadDemo()">Load demo data</button>
+    <button class="btn primary" onclick="exportReport()">Export report</button>
+  </div>
+</header>
+
+<div class="body">
+
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <h2>Add Equipment</h2>
+    </div>
+    <div class="form-body">
+      <div class="field">
+        <label>Equipment name</label>
+        <input type="text" id="f-name" placeholder="e.g. Bay 3 Two-Post Lift" />
+      </div>
+      <div class="field">
+        <label>Equipment type</label>
+        <select id="f-type">
+          <option value="Two-Post Lift">Two-Post Lift</option>
+          <option value="Four-Post Lift">Four-Post Lift</option>
+          <option value="Scissor Lift">Scissor Lift</option>
+          <option value="Column Lift">Column Lift</option>
+          <option value="Inspection Pit">Inspection Pit</option>
+          <option value="Brake Tester">Brake Tester</option>
+          <option value="Wheel Aligner">Wheel Aligner</option>
+          <option value="Jacking Beam">Jacking Beam</option>
+          <option value="Other">Other</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Serial / Asset ref</label>
+        <input type="text" id="f-serial" placeholder="e.g. TK-2024-001" />
+      </div>
+      <div class="field">
+        <label>Last inspection date</label>
+        <input type="date" id="f-last" />
+      </div>
+      <div class="field">
+        <label>Inspection frequency</label>
+        <select id="f-freq">
+          <option value="6">Every 6 months (standard)</option>
+          <option value="3">Every 3 months (thorough use)</option>
+          <option value="12">Every 12 months (low use)</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Location / Bay</label>
+        <input type="text" id="f-location" placeholder="e.g. Bay 3, Workshop A" />
+      </div>
+      <button class="add-btn" onclick="addEquipment()">+ Add to tracker</button>
+    </div>
+    <div class="sidebar-note">
+      <p>Under <strong>LOLER 1998</strong>, lifting equipment must be thoroughly examined every <strong>6 months</strong> (or 12 months for non-person-carrying equipment), or per a written examination scheme.</p>
+    </div>
+  </aside>
+
+  <!-- Main -->
+  <main class="main">
+
+    <!-- Summary cards -->
+    <div class="summary-row">
+      <div class="summary-card total">
+        <div class="summary-val" id="s-total">0</div>
+        <div class="summary-lbl">Total items</div>
+      </div>
+      <div class="summary-card ok">
+        <div class="summary-val" id="s-ok">0</div>
+        <div class="summary-lbl">Compliant</div>
+      </div>
+      <div class="summary-card due">
+        <div class="summary-val" id="s-due">0</div>
+        <div class="summary-lbl">Due within 30 days</div>
+      </div>
+      <div class="summary-card overdue">
+        <div class="summary-val" id="s-overdue">0</div>
+        <div class="summary-lbl">Overdue</div>
+      </div>
+    </div>
+
+    <!-- Timeline -->
+    <div>
+      <div class="section-header">
+        <span class="section-title">12-month inspection timeline</span>
+      </div>
+      <div class="timeline-wrap" id="timeline-wrap">
+        <div class="empty-state" id="timeline-empty">
+          <div class="empty-icon">📋</div>
+          <div class="empty-title">No equipment added yet</div>
+          <div class="empty-sub">Add your lifting equipment using the form on the left to see your inspection schedule.</div>
+        </div>
+        <div id="timeline-inner" style="display:none;">
+          <div class="timeline-months" id="timeline-months"></div>
+          <div id="timeline-rows"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Equipment table -->
+    <div>
+      <div class="section-header">
+        <span class="section-title">Equipment register</span>
+        <button class="btn ghost" onclick="clearAll()" style="font-size:10px;">Clear all</button>
+      </div>
+      <div class="section-wrap">
+        <div class="empty-state" id="table-empty">
+          <div class="empty-icon">🔧</div>
+          <div class="empty-title">Register is empty</div>
+          <div class="empty-sub">Add equipment to build your LOLER compliance register.</div>
+        </div>
+        <table class="eq-table" id="eq-table" style="display:none;">
+          <thead>
+            <tr>
+              <th>Equipment</th>
+              <th>Type</th>
+              <th>Serial / Ref</th>
+              <th>Last inspection</th>
+              <th>Next due</th>
+              <th>Status</th>
+              <th>Days remaining</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="eq-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+  </main>
+</div>
+</div>
+
+<script>
+let equipment = [];
+let idCounter = 0;
+
+const MONTHS_SHORT = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+
+function today() { return new Date(); }
+
+function addMonths(date, n) {
+  const d = new Date(date);
+  d.setMonth(d.getMonth() + n);
+  return d;
+}
+
+function daysBetween(a, b) {
+  return Math.round((b - a) / (1000 * 60 * 60 * 24));
+}
+
+function fmtDate(d) {
+  return d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+}
+
+function getStatus(item) {
+  const now = today();
+  const next = addMonths(new Date(item.lastDate), item.freqMonths);
+  const days = daysBetween(now, next);
+  if (days < 0) return { label: 'Overdue', cls: 'overdue', days };
+  if (days <= 30) return { label: 'Due soon', cls: 'due', days };
+  return { label: 'Compliant', cls: 'ok', days };
+}
+
+function addEquipment() {
+  const name = document.getElementById('f-name').value.trim();
+  const type = document.getElementById('f-type').value;
+  const serial = document.getElementById('f-serial').value.trim();
+  const lastDate = document.getElementById('f-last').value;
+  const freq = parseInt(document.getElementById('f-freq').value);
+  const location = document.getElementById('f-location').value.trim();
+
+  if (!name || !lastDate) {
+    document.getElementById('f-name').style.borderColor = !name ? 'var(--red)' : '';
+    document.getElementById('f-last').style.borderColor = !lastDate ? 'var(--red)' : '';
+    return;
+  }
+  document.getElementById('f-name').style.borderColor = '';
+  document.getElementById('f-last').style.borderColor = '';
+
+  equipment.push({ id: ++idCounter, name, type, serial, lastDate, freqMonths: freq, location });
+  document.getElementById('f-name').value = '';
+  document.getElementById('f-serial').value = '';
+  document.getElementById('f-last').value = '';
+  document.getElementById('f-location').value = '';
+  render();
+}
+
+function removeEquipment(id) {
+  equipment = equipment.filter(e => e.id !== id);
+  render();
+}
+
+function clearAll() {
+  if (!equipment.length || confirm('Clear all equipment?')) { equipment = []; render(); }
+}
+
+function render() {
+  renderSummary();
+  renderTimeline();
+  renderTable();
+}
+
+function renderSummary() {
+  const now = today();
+  let ok = 0, due = 0, overdue = 0;
+  equipment.forEach(item => {
+    const s = getStatus(item);
+    if (s.cls === 'ok') ok++;
+    else if (s.cls === 'due') due++;
+    else overdue++;
+  });
+  document.getElementById('s-total').textContent = equipment.length;
+  document.getElementById('s-ok').textContent = ok;
+  document.getElementById('s-due').textContent = due;
+  document.getElementById('s-overdue').textContent = overdue;
+}
+
+function renderTimeline() {
+  const empty = document.getElementById('timeline-empty');
+  const inner = document.getElementById('timeline-inner');
+  if (!equipment.length) { empty.style.display = ''; inner.style.display = 'none'; return; }
+  empty.style.display = 'none'; inner.style.display = '';
+
+  const now = today();
+  const startMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+  const months = [];
+  for (let i = -2; i < 10; i++) {
+    const d = new Date(startMonth);
+    d.setMonth(d.getMonth() + i);
+    months.push(d);
+  }
+
+  // Build month header
+  const monthsEl = document.getElementById('timeline-months');
+  monthsEl.innerHTML = '';
+  // label spacer
+  const spacer = document.createElement('div');
+  spacer.style.cssText = 'min-width:200px;max-width:200px;border-right:1px solid var(--border);flex-shrink:0;';
+  monthsEl.appendChild(spacer);
+  months.forEach((m, i) => {
+    const el = document.createElement('div');
+    el.className = 'month-col' + (i === 2 ? ' current' : '');
+    el.textContent = MONTHS_SHORT[m.getMonth()] + ' ' + String(m.getFullYear()).slice(2);
+    monthsEl.appendChild(el);
+  });
+
+  // Build rows
+  const rowsEl = document.getElementById('timeline-rows');
+  rowsEl.innerHTML = '';
+  equipment.forEach(item => {
+    const row = document.createElement('div');
+    row.className = 'timeline-row animate-in';
+
+    const label = document.createElement('div');
+    label.className = 'row-label';
+    label.innerHTML = `<div class="row-name">${item.name}</div><div class="row-type">${item.type}</div>`;
+    row.appendChild(label);
+
+    const bars = document.createElement('div');
+    bars.className = 'row-bars';
+
+    // Calculate all inspection dates in range
+    const inspections = [];
+    let d = new Date(item.lastDate);
+    // go back to cover months before now
+    while (d > months[0]) d = addMonths(d, -item.freqMonths);
+    d = addMonths(d, item.freqMonths);
+    while (d <= addMonths(months[months.length - 1], 1)) {
+      inspections.push(new Date(d));
+      d = addMonths(d, item.freqMonths);
+    }
+
+    months.forEach((m, mi) => {
+      const cell = document.createElement('div');
+      cell.className = 'bar-cell';
+      const mEnd = new Date(m.getFullYear(), m.getMonth() + 1, 0);
+      const mStart = new Date(m.getFullYear(), m.getMonth(), 1);
+
+      const hit = inspections.find(ins => ins >= mStart && ins <= mEnd);
+      if (hit) {
+        const isPast = hit < now;
+        const isOverdue = hit < now && daysBetween(hit, now) > 0;
+        const daysTil = daysBetween(now, hit);
+        const pip = document.createElement('div');
+        if (isPast) {
+          pip.className = 'bar-pip inspection has-tooltip';
+          pip.innerHTML = `DONE<span class="tooltip">${fmtDate(hit)}</span>`;
+        } else if (daysTil <= 30) {
+          pip.className = 'bar-pip due-soon has-tooltip';
+          pip.innerHTML = `${daysTil}d<span class="tooltip">Due ${fmtDate(hit)}</span>`;
+        } else {
+          pip.className = 'bar-pip inspection has-tooltip';
+          pip.innerHTML = `DUE<span class="tooltip">${fmtDate(hit)}</span>`;
+        }
+        cell.appendChild(pip);
+      }
+      bars.appendChild(cell);
+    });
+
+    row.appendChild(bars);
+    rowsEl.appendChild(row);
+  });
+}
+
+function renderTable() {
+  const empty = document.getElementById('table-empty');
+  const table = document.getElementById('eq-table');
+  const tbody = document.getElementById('eq-tbody');
+  if (!equipment.length) { empty.style.display = ''; table.style.display = 'none'; return; }
+  empty.style.display = 'none'; table.style.display = '';
+  tbody.innerHTML = '';
+
+  equipment.forEach(item => {
+    const s = getStatus(item);
+    const next = addMonths(new Date(item.lastDate), item.freqMonths);
+    const totalDays = item.freqMonths * 30.4;
+    const remaining = Math.max(0, s.days);
+    const pct = Math.min(100, Math.round((remaining / totalDays) * 100));
+    const barColor = s.cls === 'ok' ? 'var(--green)' : s.cls === 'due' ? 'var(--amber2)' : 'var(--red2)';
+
+    const tr = document.createElement('tr');
+    tr.className = 'animate-in';
+    tr.innerHTML = `
+      <td>
+        <div style="font-weight:500;font-size:13px;">${item.name}</div>
+        ${item.location ? `<div style="font-size:10px;color:var(--text3);font-family:var(--mono);margin-top:2px;">${item.location}</div>` : ''}
+      </td>
+      <td><span class="freq-badge">${item.type}</span></td>
+      <td class="mono">${item.serial || '—'}</td>
+      <td class="mono">${fmtDate(new Date(item.lastDate))}</td>
+      <td class="mono">${fmtDate(next)}</td>
+      <td>
+        <span class="status-badge ${s.cls}">
+          <span class="status-dot"></span>${s.label}
+        </span>
+      </td>
+      <td>
+        <div class="days-bar-wrap">
+          <div class="days-bar-track">
+            <div class="days-bar-fill" style="width:${pct}%;background:${barColor};"></div>
+          </div>
+          <span class="mono" style="color:${barColor};min-width:42px;">${s.days < 0 ? s.days + 'd' : s.days + 'd'}</span>
+        </div>
+      </td>
+      <td><button class="del-btn" onclick="removeEquipment(${item.id})">remove</button></td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+function exportReport() {
+  if (!equipment.length) { alert('No equipment to export.'); return; }
+  const now = today();
+  const lines = [
+    'TOTALKARE — LOLER INSPECTION TRACKER REPORT',
+    '============================================',
+    `Generated: ${fmtDate(now)}`,
+    `Total equipment: ${equipment.length}`,
+    '',
+    'EQUIPMENT REGISTER',
+    '------------------',
+  ];
+  equipment.forEach(item => {
+    const s = getStatus(item);
+    const next = addMonths(new Date(item.lastDate), item.freqMonths);
+    lines.push(`${item.name} (${item.type})`);
+    lines.push(`  Serial/Ref: ${item.serial || 'N/A'}`);
+    lines.push(`  Location: ${item.location || 'N/A'}`);
+    lines.push(`  Last inspection: ${fmtDate(new Date(item.lastDate))}`);
+    lines.push(`  Next due: ${fmtDate(next)}`);
+    lines.push(`  Status: ${s.label} (${s.days < 0 ? Math.abs(s.days) + ' days overdue' : s.days + ' days remaining'})`);
+    lines.push('');
+  });
+
+  const overdue = equipment.filter(i => getStatus(i).cls === 'overdue');
+  if (overdue.length) {
+    lines.push('OVERDUE ITEMS — ACTION REQUIRED');
+    lines.push('--------------------------------');
+    overdue.forEach(i => lines.push(`  • ${i.name} — ${Math.abs(getStatus(i).days)} days overdue`));
+  }
+
+  const a = document.createElement('a');
+  a.href = 'data:text/plain,' + encodeURIComponent(lines.join('\n'));
+  a.download = `totalkare-loler-report-${now.toISOString().slice(0,10)}.txt`;
+  a.click();
+}
+
+function loadDemo() {
+  equipment = [];
+  idCounter = 0;
+  const base = today();
+  const demo = [
+    { name: 'Bay 1 — Two-Post Lift', type: 'Two-Post Lift', serial: 'TK-2023-001', freqMonths: 6, location: 'Bay 1', offset: -8 },
+    { name: 'Bay 2 — Two-Post Lift', type: 'Two-Post Lift', serial: 'TK-2023-002', freqMonths: 6, location: 'Bay 2', offset: -5 },
+    { name: 'Bay 3 — Four-Post Lift', type: 'Four-Post Lift', serial: 'TK-2022-011', freqMonths: 6, location: 'Bay 3', offset: -3 },
+    { name: 'Inspection Pit A', type: 'Inspection Pit', serial: 'PIT-001', freqMonths: 12, location: 'Workshop A', offset: -11 },
+    { name: 'Mobile Scissor Lift', type: 'Scissor Lift', serial: 'SC-2024-004', freqMonths: 6, location: 'Workshop B', offset: -1 },
+    { name: 'Jacking Beam #1', type: 'Jacking Beam', serial: 'JB-007', freqMonths: 6, location: 'Workshop A', offset: -6 },
+    { name: 'Column Lift Set', type: 'Column Lift', serial: 'CL-2023-003', freqMonths: 6, location: 'Bay 4', offset: -4 },
+  ];
+  demo.forEach(d => {
+    const last = new Date(base);
+    last.setMonth(last.getMonth() + d.offset);
+    const lastDate = last.toISOString().slice(0,10);
+    equipment.push({ id: ++idCounter, name: d.name, type: d.type, serial: d.serial, lastDate, freqMonths: d.freqMonths, location: d.location });
+  });
+  render();
+}
+
+// Set today as default date
+document.getElementById('f-last').valueAsDate = today();
+render();
+</script>
+</body>
+</html>
